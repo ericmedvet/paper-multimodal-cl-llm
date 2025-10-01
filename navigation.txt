@@ -1,0 +1,73 @@
+% ============ Representation
+
+$mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf())
+$representation = ea.representation.multiSRTree()
+$seededRepresentation = ea.representation.seeded(
+  of = $representation;
+  seeds = ea.misc.fromTextFile(
+    path = "./final-best.base64";
+    f = f.fromBase64()
+  )
+)
+
+% ============ EAs
+
+$stop = ea.sc.nOfQualityEvaluations(n = 1000)
+
+$ga = ea.s.ga(
+  stop = $stop;
+  mapper = $mapper;
+  representation = $seededRepresentation
+)
+
+% ============ Task
+
+% w for wall; space for empty; s for start; t for target; | for separating lines
+
+$sArena = " s      | www    |   w    |   w www|     w  |   t    |w  ww  w|        "
+
+$problem = ea.p.simToSbbmo(
+  simulation = ds.sat.fromEnvironment(
+    environment = ds.e.navigation(
+      sensorsAngleRange = m.range(min = -0.75; max = 0.75);
+      arena = ds.arena.fromString(l = 0.25; s = $sArena)
+    );
+    dT = 0.1;
+    tRange = m.range(min = 0; max = 60)
+  );
+  toMinObjectives = [ds.e.n.avgD()]
+)
+
+% ============ Experiment
+
+ea.experiment(
+  runs = (randomGenerator = (seed = [1]) * [m.defaultRG()]) * [ea.run(
+    problem = $problem;
+    solver = $ga
+  )];
+  listeners = [
+    ea.l.console(
+      functions = [
+        f.mapValue(key = "avg.dist"; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%6.4f")
+      ];
+      onlyLast = false
+    );
+    ea.l.saveForRun(
+      path = "./final-best.base64";
+      overwrite = true;
+      of = ea.acc.all(eFunction = ea.f.firsts(); listFunction = f.nTh(n = -1));
+      processor = f.toBase64(of = f.each(of = f.subList(from = 0; to = 1; relative = false); mapF = ea.f.genotype()));
+      overwrite = true
+    );
+    ea.l.saveForRun(
+      path = "./results/{name}/{startTime}/best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}.svg";
+      of = ea.acc.lastBest();
+      processor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.behavior(of = ea.f.quality()); type = svg)
+    );
+    ea.l.savePlotAndCsvForExp(
+      path = "./results/{name}/{startTime}/best-fitness.svg";
+      plot = ea.plot.single.quality(q = f.mapValue(key = "avg.dist"; of = ea.f.behaviorQuality()));
+      type = svg
+    )
+  ]
+)
