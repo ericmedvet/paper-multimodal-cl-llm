@@ -5,7 +5,7 @@ $representation = ea.representation.multiSRTree()
 $seededRepresentation = ea.representation.seeded(
   of = $representation;
   seeds = ea.misc.fromTextFile(
-    path = "./final-best.base64";
+    path = "./results/final-best.base64";
     f = f.fromBase64()
   )
 )
@@ -20,22 +20,51 @@ $ga = ea.s.ga(
   representation = $seededRepresentation
 )
 
-% ============ Task
+% ============ Arenas
 
 % w for wall; space for empty; s for start; t for target; | for separating lines
 
-$sArena = " s      | www    |   w    |   w www|     w  |   t    |w  ww  w|        "
+$sArena = "  s     | www    |   ww   |   w www|     w   |        |w  wwt w|        "
+
+$previousSArenas = [
+  "      |   t  |      |      |      |s     ";
+  "        |swww    |   w    |   w www|     w  |   t    |w  ww  w|        "
+]
+
+$validationArenas = [
+  ds.arena.prepared(name = u_barrier);
+  ds.arena.prepared(
+    name = standard;
+    initialRobotXRange = m.range(min = 0.15; max = 0.15);
+    initialRobotYRange = m.range(min = 0.15; max = 0.15);
+    targetXRange = m.range(min = 0.15; max = 0.15);
+    targetYRange = m.range(min = 0.9; max = 0.9)
+  );
+  ds.arena.prepared(
+    name = snake;
+    initialRobotXRange = m.range(min = 0.1; max = 0.1);
+    initialRobotYRange = m.range(min = 0.1; max = 0.1);
+    targetXRange = m.range(min = 0.9; max = 0.9);
+    targetYRange = m.range(min = 0.1; max = 0.1)
+  )
+]
+
+% ============ Task
+
+$objName = "final.dist"
+$objFun = ds.e.n.finalD()
+$dT = 0.1
+$tRange = m.range(min = 0; max = 60)
 
 $problem = ea.p.simToSbbmo(
   simulation = ds.sat.fromEnvironment(
     environment = ds.e.navigation(
-      sensorsAngleRange = m.range(min = -0.75; max = 0.75);
       arena = ds.arena.fromString(l = 0.25; s = $sArena)
     );
-    dT = 0.1;
-    tRange = m.range(min = 0; max = 60)
+    dT = $dT;
+    tRange = $tRange
   );
-  toMinObjectives = [ds.e.n.avgD()]
+  toMinObjectives = [$objFun]
 )
 
 % ============ Experiment
@@ -48,12 +77,12 @@ ea.experiment(
   listeners = [
     ea.l.console(
       functions = [
-        f.mapValue(key = "avg.dist"; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%6.4f")
+        f.mapValue(key = $objName; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%6.4f")
       ];
       onlyLast = false
     );
     ea.l.saveForRun(
-      path = "./final-best.base64";
+      path = "./results/final-best.base64";
       overwrite = true;
       of = ea.acc.all(eFunction = ea.f.firsts(); listFunction = f.nTh(n = -1));
       processor = f.toBase64(of = f.each(of = f.subList(from = 0; to = 1; relative = false); mapF = ea.f.genotype()));
@@ -64,9 +93,30 @@ ea.experiment(
       of = ea.acc.lastBest();
       processor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.behavior(of = ea.f.quality()); type = svg)
     );
-    ea.l.savePlotAndCsvForExp(
-      path = "./results/{name}/{startTime}/best-fitness.svg";
-      plot = ea.plot.single.quality(q = f.mapValue(key = "avg.dist"; of = ea.f.behaviorQuality()));
+    ea.l.savePlotAndCsvForRun(
+      path = "./results/{name}/{startTime}/best-on-current-stage.svg";
+      plot = ea.plot.single.quality(q = f.mapValue(key = $objName; of = ea.f.behaviorQuality()));
+      type = svg
+    );
+    ea.l.savePlotAndCsvForRun(
+      path = "./results/{name}/{startTime}/best-on-validation.svg";
+      plot = ea.plot.single.xyrsRun(ys = (of = (simulation = (environment = (arena = $validationArenas)
+      * [ds.e.navigation()])
+      * [ds.sat.fromEnvironment(dT = $dT; tRange = $tRange)])
+      * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
+      * [f.composition(then = $objFun)]
+      );
+      type = svg
+    );
+    ea.l.savePlotAndCsvForRun(
+      path = "./results/{name}/{startTime}/best-on-previous-stages.svg";
+      plot = ea.plot.single.xyrsRun(ys = (of = (simulation = (environment = (arena = (s = $previousSArenas)
+      * [ds.arena.fromString(l = 0.25)])
+      * [ds.e.navigation()])
+      * [ds.sat.fromEnvironment(dT = $dT; tRange = $tRange)])
+      * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
+      * [f.composition(then = $objFun)]
+      );
       type = svg
     )
   ]
