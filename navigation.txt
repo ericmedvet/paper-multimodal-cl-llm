@@ -1,6 +1,7 @@
 % ============ Representation
 
 $mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf())
+
 $representation = ea.representation.multiSRTree()
 $seededRepresentation = ea.representation.seeded(
   of = $representation;
@@ -10,7 +11,7 @@ $seededRepresentation = ea.representation.seeded(
   )
 )
 
-% ============ EAs
+% ============ EA
 
 $stop = ea.sc.nOfQualityEvaluations(n = 1000)
 
@@ -24,11 +25,9 @@ $ga = ea.s.ga(
 
 % w for wall; space for empty; s for start; t for target; | for separating lines
 
-$sArena = "  s     | www    |   ww   |   w www|     w   |        |w  wwt w|        "
-
-$previousSArenas = [
-  "      |   t  |      |      |      |s     ";
-  "        |swww    |   w    |   w www|     w  |   t    |w  ww  w|        "
+$curriculumArenas = (l = [0.25]) * [
+  ds.arena.fromString(name = "p0"; s = "      |   t  |      |      |      |s     ");
+  ds.arena.fromString(name = "p1"; s = "  t   | wwww |  w   | wwww |      |   s  ")
 ]
 
 $validationArenas = [
@@ -51,20 +50,42 @@ $validationArenas = [
 
 % ============ Task
 
-$objName = "final.dist"
 $objFun = ds.e.n.finalD()
 $dT = 0.1
 $tRange = m.range(min = 0; max = 60)
 
-$problem = ea.p.simToSbbmo(
-  simulation = ds.sat.fromEnvironment(
-    environment = ds.e.navigation(
-      arena = ds.arena.fromString(l = 0.25; s = $sArena)
-    );
-    dT = $dT;
-    tRange = $tRange
+$currentQFun = f.composition(
+  name = current;
+  of = ds.f.simulate(
+    simulation = ds.sat.fromEnvironment(
+      environment = ds.e.navigation(arena = m.nth(n = -1; values = $curriculumArenas));
+      dT = $dT;
+      tRange = $tRange
+    )
   );
-  toMinObjectives = [$objFun]
+  then = $objFun
+)
+
+$allQFun = f.avg(
+  name = "current+past";
+  of = f.all(
+    fs = (of = (simulation = (environment = (arena = $curriculumArenas)
+      * [ds.e.navigation()])
+      * [ds.sat.fromEnvironment(dT = $dT; tRange = $tRange)])
+      * [ds.f.simulate()])
+      * [f.composition(then = $objFun)]
+  )  
+)
+
+$problem = ea.p.totalOrder(
+  qFunction = $allQFun;
+  example = ds.misc.simExample(
+    simulation = ds.sat.fromEnvironment(
+      environment = ds.e.navigation(arena = m.nth(n = -1; values = $curriculumArenas));
+      dT = $dT;
+      tRange = $tRange
+    )
+  )
 )
 
 % ============ Experiment
@@ -76,10 +97,14 @@ ea.experiment(
   )];
   listeners = [
     ea.l.console(
-      functions = [
-        f.mapValue(key = $objName; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%6.4f")
-      ];
-      onlyLast = false
+      functions = + [
+        ea.f.quality(of = ea.f.best(); format = "%6.4f")
+      ] + (of = (simulation = (environment = (arena = $validationArenas)
+      * [ds.e.navigation()])
+      * [ds.sat.fromEnvironment(dT = $dT; tRange = $tRange)])
+      * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
+      * [f.composition(then = $objFun)];
+      onlyLast = true
     );
     ea.l.saveForRun(
       path = "./results/final-best.base64";
@@ -91,11 +116,22 @@ ea.experiment(
     ea.l.saveForRun(
       path = "./results/{name}/{startTime}/best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}.svg";
       of = ea.acc.lastBest();
-      processor = ea.f.toImage(image = ds.d.navigation(); of = ea.f.behavior(of = ea.f.quality()); type = svg)
+      processor = ea.f.toImage(
+        image = ds.d.navigation();
+        of = ds.f.simulate(
+         simulation = ds.sat.fromEnvironment(
+           environment = ds.e.navigation(arena = m.nth(n = -1; values = $curriculumArenas));
+           dT = $dT;
+           tRange = $tRange
+          );
+          of = ea.f.solution()
+        );
+        type = svg
+      )
     );
     ea.l.savePlotAndCsvForRun(
-      path = "./results/{name}/{startTime}/best-on-current-stage.svg";
-      plot = ea.plot.single.quality(q = f.mapValue(key = $objName; of = ea.f.behaviorQuality()));
+      path = "./results/{name}/{startTime}/best-quality.svg";
+      plot = ea.plot.single.quality();
       type = svg
     );
     ea.l.savePlotAndCsvForRun(
@@ -109,9 +145,8 @@ ea.experiment(
       type = svg
     );
     ea.l.savePlotAndCsvForRun(
-      path = "./results/{name}/{startTime}/best-on-previous-stages.svg";
-      plot = ea.plot.single.xyrsRun(ys = (of = (simulation = (environment = (arena = (s = $previousSArenas)
-      * [ds.arena.fromString(l = 0.25)])
+      path = "./results/{name}/{startTime}/best-on-all-stages.svg";
+      plot = ea.plot.single.xyrsRun(ys = (of = (simulation = (environment = (arena = $curriculumArenas)
       * [ds.e.navigation()])
       * [ds.sat.fromEnvironment(dT = $dT; tRange = $tRange)])
       * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
