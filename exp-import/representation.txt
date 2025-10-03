@@ -1,0 +1,11 @@
+$mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf())
+
+$initialRepresentation = ea.representation.multiSRTree()
+$seededRepresentation = ea.representation.seeded(
+  of = $initialRepresentation;
+  seeds = ea.misc.fromTextFile(
+    path = "./results/final-best.base64";
+    f = f.fromBase64()
+  )
+)
+

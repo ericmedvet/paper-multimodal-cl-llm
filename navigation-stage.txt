@@ -1,0 +1,22 @@
+@import("runs/sample/arenas.txt")
+@import("exp-import/validation-arenas.txt")
+@import("exp-import/representation.txt")
+$stop = ea.sc.nOfQualityEvaluations(n = 1000)
+$representation = $initialRepresentation
+@import("exp-import/ea.txt")
+@import("exp-import/q-functions.txt")
+$qFun = $allQFun
+@import("exp-import/task.txt")
+@import("exp-import/listeners.txt")
+
+ea.experiment(
+  runs = (randomGenerator = (seed = [1]) * [m.defaultRG()]) * [ea.run(
+    problem = $problem;
+    solver = $ga
+  )];
+  listeners = [
+    $consoleL;
+    $bestSaverL; $bestTrajSaverL;
+    $qPlotL; $valPlotL; $currPlotL
+	]
+)

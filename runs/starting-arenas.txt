@@ -1,0 +1,5 @@
+% w for wall; space for empty; s for start; t for target; | for separating lines
+
+$curriculumArenas = (l = [0.25]) * [
+  ds.arena.fromString(name = "p0"; s = "      |   t  |      |      |      |s     ")
+]

@@ -1,0 +1,6 @@
+$ga = ea.s.ga(
+  stop = $stop;
+  mapper = $mapper;
+  representation = $representation
+)
+

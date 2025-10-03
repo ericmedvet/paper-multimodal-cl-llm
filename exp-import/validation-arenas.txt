@@ -1,0 +1,18 @@
+$validationArenas = [
+  ds.arena.prepared(name = u_barrier);
+  ds.arena.prepared(
+    name = standard;
+    initialRobotXRange = m.range(min = 0.15; max = 0.15);
+    initialRobotYRange = m.range(min = 0.15; max = 0.15);
+    targetXRange = m.range(min = 0.15; max = 0.15);
+    targetYRange = m.range(min = 0.9; max = 0.9)
+  );
+  ds.arena.prepared(
+    name = snake;
+    initialRobotXRange = m.range(min = 0.1; max = 0.1);
+    initialRobotYRange = m.range(min = 0.1; max = 0.1);
+    targetXRange = m.range(min = 0.9; max = 0.9);
+    targetYRange = m.range(min = 0.1; max = 0.1)
+  )
+]
+
