@@ -6,7 +6,7 @@ $representation = $initialRepresentation
 @import("exp-import/ea.txt")
 @import("exp-import/q-functions.txt")
 $qFun = $allQFun
-@import("exp-import/task.txt")
+@import("exp-import/problem.txt")
 @import("exp-import/listeners.txt")
 
 ea.experiment(

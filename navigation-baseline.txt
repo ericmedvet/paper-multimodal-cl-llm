@@ -1,12 +1,12 @@
 @import("runs/sample/arenas.txt")
 @import("exp-import/validation-arenas.txt")
 @import("exp-import/representation.txt")
-$stop = ea.sc.nOfQualityEvaluations(n = 25000)
+$stop = ea.sc.nOfQualityEvaluations(n = 1000)
 $representation = $initialRepresentation
 @import("exp-import/ea.txt")
 @import("exp-import/q-functions.txt")
-$qFun = $valQFun
-@import("exp-import/task.txt")
+$qFun = $validationQFun
+@import("exp-import/problem.txt")
 @import("exp-import/listeners.txt")
 
 ea.experiment(
@@ -14,8 +14,8 @@ ea.experiment(
     problem = $problem;
     solver = $ga
   )];
-  listeners = [
+  listeners = + [
     $consoleL;
     $qPlotL; $valPlotL
-  ]
+  ] + $bestValTrajSaverLs
 )

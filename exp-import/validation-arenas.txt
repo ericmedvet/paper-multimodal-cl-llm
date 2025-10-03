@@ -1,5 +1,9 @@
 $validationArenas = [
-  ds.arena.prepared(name = u_barrier);
+  ds.arena.prepared(
+    name = u_barrier;
+    initialRobotXRange = m.range(min = 0.5; max = 0.5);
+    initialRobotYRange = m.range(min = 0.85; max = 0.85)
+  );
   ds.arena.prepared(
     name = standard;
     initialRobotXRange = m.range(min = 0.15; max = 0.15);

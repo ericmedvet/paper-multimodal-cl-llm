@@ -1,6 +1,9 @@
 $mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf())
 
-$initialRepresentation = ea.representation.multiSRTree()
+$initialRepresentation = ea.representation.multiSRTree(
+	ephemeral = true;
+  operators = [addition; subtraction; multiplication; prot_division; prot_log; re_lu; ternary]
+)
 $seededRepresentation = ea.representation.seeded(
   of = $initialRepresentation;
   seeds = ea.misc.fromTextFile(

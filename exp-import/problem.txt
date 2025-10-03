@@ -2,7 +2,10 @@ $problem = ea.p.totalOrder(
   qFunction = $qFun;
   example = ds.misc.simExample(
     simulation = ds.sat.fromEnvironment(
-      environment = ds.e.navigation(arena = m.nth(n = -1; values = $validationArenas));
+      environment = ds.e.navigation(
+        nOfSensors = $nOfSensors; robotRadius = $robotRadius;
+        arena = m.nth(n = -1; values = $validationArenas)
+      );
       dT = $dT;
       tRange = $tRange
     )
