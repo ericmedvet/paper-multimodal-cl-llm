@@ -14,8 +14,9 @@ ea.experiment(
     problem = $problem;
     solver = $ga
   )];
-  listeners = + [
+  listeners = [
     $consoleL;
-    $qPlotL; $valPlotL
-  ] + $bestValTrajSaverLs
+    $qPlotL; $valPlotL;
+    $bestValTrajsSaverL
+  ]
 )

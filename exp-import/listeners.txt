@@ -19,7 +19,7 @@ $bestTrajSaverL = ea.l.saveForRun(
   path = "./results/{name}/{startTime}/best-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}.svg";
   of = ea.acc.lastBest();
   processor = ea.f.toImage(
-    image = ds.d.navigation();
+    drawer = ds.d.navigation();
     of = ds.f.simulate(simulation = $lastSim; of = ea.f.solution());
     type = svg
   )
@@ -51,6 +51,19 @@ $currPlotL = ea.l.savePlotAndCsvForRun(
 
 $bestValTrajSaverLs = (processor = (of = (simulation = $validationSims)
 * [ds.f.simulate(of = ea.f.solution())])
-* [ea.f.toImage(image = ds.d.navigation(); type = svg)])
+* [ea.f.toImage(drawer = ds.d.navigation(); type = svg)])
 * [ea.l.saveForRun(path = "./results/{name}/{startTime}/best-validation-traj-{run.solver.name}-{run.randomGenerator.seed:%04d}.svg"; of = ea.acc.lastBest())]
+
+$bestValTrajsSaverL = ea.l.saveForRun(
+  path = "./results/{name}/{startTime}/best-val-trajs-{run.solver.name}-{run.randomGenerator.seed:%04d}.svg";
+  of = ea.acc.lastBest();
+  processor = ea.f.toMultiImage(
+    drawer = ds.d.navigation();
+    of = f.all(
+      of = ea.f.solution();
+      fs = (simulation = $validationSims) * [ds.f.simulate()]
+    );
+    type = svg
+  )
+)
 
