@@ -1,7 +1,7 @@
 @import("runs/sample/arenas.txt")
 @import("exp-import/validation-arenas.txt")
-@import("exp-import/representation.txt")
-$stop = ea.sc.nOfQualityEvaluations(n = 1000)
+@import("exp-import/ann-representation.txt")
+$stop = ea.sc.nOfQualityEvaluations(n = 25000)
 $representation = $initialRepresentation
 @import("exp-import/ea.txt")
 @import("exp-import/q-functions.txt")
@@ -17,6 +17,6 @@ ea.experiment(
   listeners = [
     $consoleL;
     $qPlotL; $valPlotL;
-    $bestValTrajsSaverL
+    $bestValidationTrajsSaverL
   ]
 )

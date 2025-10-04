@@ -1,0 +1,12 @@
+$mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [16; 16]))
+
+$initialRepresentation = ea.r.doubleString()
+
+$seededRepresentation = ea.representation.seeded(
+  of = $initialRepresentation;
+  seeds = ea.misc.fromTextFile(
+    path = "./results/final-best.base64";
+    f = f.fromBase64()
+  )
+)
+
