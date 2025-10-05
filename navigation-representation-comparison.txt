@@ -1,0 +1,104 @@
+@import("runs/sample/arenas.txt")
+@import("exp-import/validation-arenas.txt")
+$stop = ea.sc.nOfQualityEvaluations(n = 50000)
+@import("exp-import/q-functions.txt")
+$qFun = $validationQFun
+@import("exp-import/problem.txt")
+@import("exp-import/listeners.txt")
+
+ea.experiment(
+  runs = (randomGenerator = (seed = [1:1:10]) * [m.defaultRG()]) * (solver = (stop = [$stop]) * [
+    ea.s.ga(
+      name = "ann-8";
+      mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [8]));
+      representation = ea.r.doubleString()
+    );
+    ea.s.ga(
+      name = "ann-8-enhanced";
+      mapper = ea.m.enhancedNds(
+        of = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [8]));
+        windowT = 0.5
+      );
+      representation = ea.r.doubleString()
+    );
+    ea.s.ga(
+      name = "ann-16+16";
+      mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [16; 16]));
+      representation = ea.r.doubleString()
+    );
+    ea.s.ga(
+      name = "ann-16+16-enhanced";
+      mapper = ea.m.enhancedNds(
+        of = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [16; 16]));
+        windowT = 0.5
+      );
+      representation = ea.r.doubleString()
+    );
+    ea.s.ga(
+      name = "trees";
+      mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
+      representation = ea.r.list(of = ea.r.srTree())
+    );
+    ea.s.ga(
+      name = "trees-enhanced";
+      mapper = ea.m.enhancedNds(
+        of = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
+        windowT = 0.5
+      );
+      representation = ea.r.list(of = ea.r.srTree())
+    );
+    ea.s.ga(
+      name = "trees-eph+ops";
+      mapper = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
+      representation = ea.r.list(of = ea.r.srTree(
+	      ephemeral = true;
+        operators = [addition; subtraction; multiplication; prot_division; prot_log; re_lu; ternary]
+      ))
+    );
+    ea.s.ga(
+      name = "trees-eph+ops-enhanced";
+      mapper = ea.m.enhancedNds(
+        of = ea.mapper.nmrfToNds(of = ea.mapper.multiSrTreeToNmrf());
+        windowT = 0.5
+      );
+      representation = ea.r.list(of = ea.r.srTree(
+	      ephemeral = true;
+        operators = [addition; subtraction; multiplication; prot_division; prot_log; re_lu; ternary]
+      ))
+    )
+  ]) * [ea.run(
+    problem = $problem
+  )];
+  listeners = [
+    ea.l.console(
+      functions = [
+        ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.quality(of = ea.f.best(); format = "%6.4f")
+      ];
+      onlyLast = false
+    );
+    ea.l.savePlotForExp(
+      path = "./results/{name}/{startTime}/best-fitness.svg";
+      plot = ea.plot.multi.quality();
+      type = svg
+    );
+    ea.l.savePlotForExp(
+      path = "./results/{name}/{startTime}/final-best-fitness.svg";
+      plot = ea.plot.multi.qualityBoxplot();
+      configuration = ea.plot.conf.image(axesShow = all; axesIndependences = [all]);
+      type = svg
+    );
+    ea.l.saveForRun(
+      path = "./results/{name}/{startTime}/{run.solver.name}/best-curriculum-trajs-{run.randomGenerator.seed:%02d}.svg";
+      of = ea.acc.lastBest();
+      processor = ea.f.toMultiImage(
+        drawer = ds.d.navigation(ioType = off; showSensors = false);
+        of = f.all(
+          of = ea.f.solution();
+          fs = (simulation = $validationSims) * [ds.f.simulate()]
+        );
+        type = svg
+      )
+    )
+  ]
+)
