@@ -1,4 +1,7 @@
-$mapper = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [16; 16]))
+$mapper = ea.m.enhancedNds(
+  of = ea.m.dsToNpnds(npnds = ds.num.mlp(innerLayers = [8]));
+  windowT = 0.5
+)
 
 $initialRepresentation = ea.r.doubleString()
 
