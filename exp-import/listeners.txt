@@ -1,9 +1,15 @@
+$validationPerfs = (of = (simulation = $validationSims)
+  * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
+  * [f.composition(then = $objFun)]
+$curriculumPerfs = (of = (simulation = $curriculumSims)
+  * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
+  * [f.composition(then = $objFun)]
+$allPerfs = + $validationPerfs + $curriculumPerfs
+
 $consoleL = ea.l.console(
   functions = + [
     ea.f.quality(of = ea.f.best(); format = "%6.4f")
-  ] + (of = (simulation = $validationSims)
-  * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
-  * [f.composition(then = $objFun)];
+  ] + $allPerfs;
   onlyLast = false
 )
 
@@ -17,13 +23,13 @@ $bestSaverL = ea.l.saveForRun(
 
 $qPlotL = ea.l.savePlotAndCsvForRun(
   path = "./results/{name}/{startTime}/best-quality.svg";
-  plot = ea.plot.single.quality();
+  plot = ea.plot.single.quality(yRange = m.range(min = 0; max = 1));
   type = svg
 )
 
 $valPlotL = ea.l.savePlotAndCsvForRun(
   path = "./results/{name}/{startTime}/best-on-validation.svg";
-  plot = ea.plot.single.xyrsRun(ys = (of = (simulation = $validationSims)
+  plot = ea.plot.single.xyrsRun(yRange = m.range(min = 0; max = 1); ys = (of = (simulation = $validationSims)
   * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
   * [f.composition(then = $objFun)]
   );
@@ -32,7 +38,7 @@ $valPlotL = ea.l.savePlotAndCsvForRun(
 
 $currPlotL = ea.l.savePlotAndCsvForRun(
   path = "./results/{name}/{startTime}/best-on-all-stages.svg";
-  plot = ea.plot.single.xyrsRun(ys = (of = (simulation = $curriculumSims)
+  plot = ea.plot.single.xyrsRun(yRange = m.range(min = 0; max = 1); ys = (of = (simulation = $curriculumSims)
   * [ds.f.simulate(of = ea.f.solution(of = ea.f.best()))])
   * [f.composition(then = $objFun)]
   );

@@ -1,8 +1,8 @@
 @import("runs/sample/arenas.txt")
 @import("exp-import/validation-arenas.txt")
-@import("exp-import/multitree-representation.txt")
+@import("exp-import/ann-representation.txt")
 $stop = ea.sc.nOfQualityEvaluations(n = 5000)
-$representation = $initialRepresentation
+$representation = $seededRepresentation
 @import("exp-import/ea.txt")
 @import("exp-import/q-functions.txt")
 $qFun = $curriculumQFun
